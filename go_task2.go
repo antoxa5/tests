@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 	"time"
 
@@ -9,22 +10,39 @@ import (
 )
 
 func main() {
-	connect, err := sql.Open("clickhouse", "tcp://127.0.0.1:8123?debug=true")
+	dsn := "http://127.0.0.1:8123/default"
+	connect, err := sql.Open("clickhouse", dsn)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	if err := connect.Ping(); err != nil {
+	if err = connect.Ping(); err != nil {
 		log.Fatal(err)
 	}
 
-	_, err = connect.Exec(`
-		INSERT INTO events (eventID, eventType, userID, eventTime, payload)
-		VALUES (?, ?, ?, ?, ?)`,
-		1, "login", 100, time.Now(), "Some payload data for login",
-	)
-
+	tx, err := connect.Begin()
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	stmt, err := tx.Prepare("INSERT INTO events (eventID, eventType, userID, eventTime, payload) VALUES (?, ?, ?, ?, ?)")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	eventID := 1
+	eventType := "login"
+	userID := 100
+	eventTime := time.Now()
+	payload := "Some payload data for login"
+
+	if _, err := stmt.Exec(eventID, eventType, userID, eventTime, payload); err != nil {
+		log.Fatal(err)
+	}
+
+	if err := tx.Commit(); err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println("Data inserted successfully!")
 }
