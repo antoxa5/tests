@@ -31,10 +31,10 @@ func main() {
 	}
 
 	eventID := 1
-	eventType := "login"
+	eventType := "MyType"
 	userID := 100
 	eventTime := time.Now()
-	payload := "Some payload data for login"
+	payload := "Пробуем кирилицу"
 
 	if _, err := stmt.Exec(eventID, eventType, userID, eventTime, payload); err != nil {
 		log.Fatal(err)
@@ -44,5 +44,5 @@ func main() {
 		log.Fatal(err)
 	}
 
-	fmt.Println("Data inserted successfully!")
+	fmt.Println("Данные успешно добавлены!")
 }
